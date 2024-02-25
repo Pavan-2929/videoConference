@@ -14,22 +14,19 @@ const Room = () => {
     setRemoteSocketId(data.id);
   };
 
-const handleCallUser = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
-    setMyStream(stream);
-    const offer = await peer.getOffer();
-    socket.emit("user:call", { to: remoteSocketId, offer });
-    setCallStatus("Calling...");
-  } catch (error) {
-    console.error("Error calling user:", error);
-    setCallStatus("Failed to initiate call");
-  }
-};
-
+  const handleCallUser = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setMyStream(stream);
+      const offer = await peer.getOffer();
+      socket.emit("user:call", { to: remoteSocketId, offer });
+    } catch (error) {
+      console.error("Error calling user:", error);
+    }
+  };
 
   const handleIncomingCall = async ({ from, offer }) => {
     setRemoteSocketId(from);
@@ -42,10 +39,8 @@ const handleCallUser = async () => {
       console.log("incoming call", from, offer);
       const ans = await peer.getAnswer(offer);
       socket.emit("call:accepted", { to: from, ans });
-      setCallStatus("Call accepted");
     } catch (error) {
       console.error("Error accepting incoming call:", error);
-      setCallStatus("Failed to accept call");
     }
   };
 
@@ -84,10 +79,8 @@ const handleCallUser = async () => {
       peer.setLocalDescription(ans);
       console.log("call accepted");
       sendStreams();
-      setCallStatus("Call connected");
     } catch (error) {
       console.error("Error accepting call:", error);
-      setCallStatus("Failed to connect call");
     }
   };
 
@@ -96,7 +89,6 @@ const handleCallUser = async () => {
       handleCallUser();
     }
   }, [remoteSocketId]);
-
 
   const handleNegoNeedIncoming = async ({ from, offer }) => {
     try {
@@ -132,7 +124,7 @@ const handleCallUser = async () => {
   }, [socket, handleUserJoined]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-3xl font-bold mb-4">Room page</h1>
       <h4 className="mb-4">
         {remoteSocketId ? "Connected" : "No one is in the room"}
@@ -140,30 +132,36 @@ const handleCallUser = async () => {
       {remoteSocketId && (
         <button
           onClick={handleCallUser}
-          className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded `}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow"
         >
-          Share screen
+          Share Screen
         </button>
       )}
       {myStream && (
-        <ReactPlayer
-          playing
-          muted
-          width="300px"
-          height="300px"
-          controls
-          url={myStream}
-        />
+        <div className="mt-4">
+          <h2 className="text-xl font-bold mb-2">Your Video</h2>
+          <ReactPlayer
+            playing
+            muted
+            width="300px"
+            height="300px"
+            controls
+            url={myStream}
+          />
+        </div>
       )}
       {remoteStream && (
-        <ReactPlayer
-          playing
-          muted
-          width="300px"
-          height="300px"
-          controls
-          url={remoteStream}
-        />
+        <div className="mt-4">
+          <h2 className="text-xl font-bold mb-2">Remote Video</h2>
+          <ReactPlayer
+            playing
+            muted
+            width="300px"
+            height="300px"
+            controls
+            url={remoteStream}
+          />
+        </div>
       )}
     </div>
   );
